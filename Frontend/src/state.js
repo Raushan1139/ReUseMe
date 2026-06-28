@@ -1,6 +1,6 @@
 import { getUserLocation } from './utils/location.js';
 
-const API_URL = 'http://localhost:3001/api';
+const API_URL = 'https://reuseme-fr56.onrender.com/api';
 
 // Init state variables
 let darkMode = localStorage.getItem('theme') === 'dark' || 
