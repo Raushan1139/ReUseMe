@@ -36,10 +36,12 @@ const userSchema = new mongoose.Schema({
     type: {
         type: String,
         enum:["Point"],
+        required: true,
         default: "Point"
     },
     coordinates: {
         type: [Number],
+        required: true,
         default:[0,0]
     }
   },
@@ -63,6 +65,16 @@ const userSchema = new mongoose.Schema({
   }
 }, {
   timestamps: true
+});
+
+userSchema.pre('save', function(next) {
+  if (!this.location || !this.location.coordinates || this.location.coordinates.length !== 2) {
+    this.location = {
+      type: 'Point',
+      coordinates: [0, 0]
+    };
+  }
+  next();
 });
 
 userSchema.index({ location: '2dsphere' });

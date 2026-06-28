@@ -46,8 +46,36 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/reusem
 
 mongoose
   .connect(MONGODB_URI)
-  .then(() => {
+  .then(async () => {
     console.log('Connected to MongoDB database successfully.');
+
+    // Run migration to fix user documents with invalid geo-keys
+    try {
+      const User = require('./models/User');
+      const result = await User.updateMany(
+        { 
+          $or: [
+            { "location.coordinates": { $exists: false } },
+            { "location.coordinates": null },
+            { "location.coordinates": { $size: 0 } }
+          ]
+        },
+        { 
+          $set: { 
+            location: { 
+              type: "Point", 
+              coordinates: [0, 0] 
+            } 
+          } 
+        }
+      );
+      if (result.modifiedCount > 0) {
+        console.log(`Migration: Fixed ${result.modifiedCount} user documents with invalid geo location.`);
+      }
+    } catch (migrationErr) {
+      console.warn('Migration failed or skipped:', migrationErr.message);
+    }
+
     app.listen(PORT, () => {
       console.log(`Express API Server running on port ${PORT}`);
       console.log(`Server URL: http://localhost:${PORT}`);
