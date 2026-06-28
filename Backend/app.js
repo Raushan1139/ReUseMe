@@ -55,10 +55,12 @@ mongoose
   .then(async () => {
     console.log('Connected to MongoDB database successfully.');
 
-    // Run migration to fix user documents with invalid geo-keys
+    // Run migration to fix user and product documents with invalid geo-keys
     try {
       const User = require('./models/User');
-      const result = await User.updateMany(
+      const Product = require('./models/Product');
+      
+      const userResult = await User.updateMany(
         { 
           $or: [
             { "location.coordinates": { $exists: false } },
@@ -75,9 +77,36 @@ mongoose
           } 
         }
       );
-      if (result.modifiedCount > 0) {
-        console.log(`Migration: Fixed ${result.modifiedCount} user documents with invalid geo location.`);
+      if (userResult.modifiedCount > 0) {
+        console.log(`Migration: Fixed ${userResult.modifiedCount} user documents with invalid geo location.`);
       }
+
+      const prodResult = await Product.updateMany(
+        { 
+          $or: [
+            { "location": { $exists: false } },
+            { "location.coordinates": { $exists: false } },
+            { "location.coordinates": null },
+            { "location.coordinates": { $size: 0 } }
+          ]
+        },
+        { 
+          $set: { 
+            location: { 
+              type: "Point", 
+              coordinates: [85.1376, 25.5941] 
+            } 
+          } 
+        }
+      );
+      if (prodResult.modifiedCount > 0) {
+        console.log(`Migration: Fixed ${prodResult.modifiedCount} product documents with invalid geo location.`);
+      }
+
+      // Synchronize indexes to build 2dsphere spatial index on clean data
+      await User.syncIndexes();
+      await Product.syncIndexes();
+      console.log('Database indexes synchronized successfully.');
     } catch (migrationErr) {
       console.warn('Migration failed or skipped:', migrationErr.message);
     }
