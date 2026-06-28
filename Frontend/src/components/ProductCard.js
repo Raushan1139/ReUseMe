@@ -6,7 +6,13 @@ export function ProductCard(product) {
   card.className = 'group relative flex flex-col justify-between bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800/80 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 cursor-pointer';
   
   const isWish = state.isWishlisted(product.id);
-  const formattedBuyDate = product.buyDate ? new Date(product.buyDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short' }) : null;
+  const getFormattedBuyDate = (dateVal) => {
+    if (!dateVal) return null;
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return null;
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+  };
+  const formattedBuyDate = getFormattedBuyDate(product.buyDate);
   
   // Set up condition badge color classes
   let condColor = '';

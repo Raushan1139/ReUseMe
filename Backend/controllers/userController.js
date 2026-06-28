@@ -39,6 +39,10 @@ const registerUser = async (req, res, next) => {
       username,
       email,
       password: hashedPassword,
+      location: {
+        type: 'Point',
+        coordinates: [0, 0]
+      }
     });
 
     if (user) {

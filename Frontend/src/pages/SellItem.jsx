@@ -114,6 +114,13 @@ export function SellItem(params = {}) {
   const editProductId = params.editProductId;
   const isEditMode = !!editProductId;
 
+  const formatBuyDate = (dateVal) => {
+    if (!dateVal) return '';
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+  };
+
   const container = document.createElement('div');
   container.className = 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6';
 
@@ -422,7 +429,7 @@ export function SellItem(params = {}) {
 
                   <div id="preview-card-buy-date-container" class="${listData.buyDate ? 'flex' : 'hidden'} items-center gap-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/40 px-2 py-0.5 rounded-md self-start mt-0.5">
                     <i data-lucide="calendar" class="w-3.5 h-3.5 text-emerald-555"></i>
-                    <span id="preview-card-buy-date">${listData.buyDate ? `Bought: ${new Date(listData.buyDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })}` : ''}</span>
+                    <span id="preview-card-buy-date">${listData.buyDate ? `Bought: ${formatBuyDate(listData.buyDate)}` : ''}</span>
                   </div>
                 </div>
 
@@ -579,8 +586,8 @@ export function SellItem(params = {}) {
       const previewDateContainer = container.querySelector('#preview-card-buy-date-container');
       const previewDateText = container.querySelector('#preview-card-buy-date');
       
-      if (listData.buyDate) {
-        const formatted = new Date(listData.buyDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+      const formatted = formatBuyDate(listData.buyDate);
+      if (formatted) {
         if (previewDateText) previewDateText.innerText = `Bought: ${formatted}`;
         if (previewDateContainer) {
           previewDateContainer.classList.remove('hidden');

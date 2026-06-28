@@ -12,11 +12,17 @@ const app = express();
 
 // Middlewares
 app.use(cors({
-  origin:[
-    "http://localhost:5173",
-    "https://reuseme-eight.vercel.app"
-  ],
-  credentials:true
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    const allowedOrigins = ["https://reuseme-eight.vercel.app"];
+    const isLocalhost = /^http:\/\/localhost:\d+$/.test(origin) || /^http:\/\/127\.0\.0\.1:\d+$/.test(origin);
+    if (isLocalhost || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));

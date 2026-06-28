@@ -1,5 +1,19 @@
 const mongoose = require('mongoose');
 
+const locationSchema = new mongoose.Schema({
+  type: {
+    type: String,
+    enum: ['Point'],
+    required: true,
+    default: 'Point'
+  },
+  coordinates: {
+    type: [Number],
+    required: true,
+    default: [0, 0]
+  }
+}, { _id: false });
+
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
@@ -33,17 +47,9 @@ const userSchema = new mongoose.Schema({
     default: 5.0,
   },
   location: {
-    type: {
-        type: String,
-        enum:["Point"],
-        required: true,
-        default: "Point"
-    },
-    coordinates: {
-        type: [Number],
-        required: true,
-        default:[0,0]
-    }
+    type: locationSchema,
+    required: true,
+    default: () => ({ type: 'Point', coordinates: [0, 0] })
   },
   phone: {
     type: String,
@@ -69,12 +75,15 @@ const userSchema = new mongoose.Schema({
 
 userSchema.pre('save', function(next) {
   if (!this.location || !this.location.coordinates || this.location.coordinates.length !== 2) {
-    this.location = {
+    this.set('location', {
       type: 'Point',
       coordinates: [0, 0]
-    };
+    });
   }
-  next();
+  this.markModified('location');
+  if (typeof next === 'function') {
+    next();
+  }
 });
 
 userSchema.index({ location: '2dsphere' });
