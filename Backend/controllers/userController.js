@@ -44,6 +44,47 @@ const registerUser = async (req, res, next) => {
         coordinates: [0, 0]
       }
     });
+    try {
+  await transporter.sendMail({
+    from: process.env.EMAIL_USER,
+    to: user.email,
+    subject: "🎉 Welcome to ReUseHub!",
+    html: `
+      <div style="font-family:Arial,sans-serif;padding:20px;max-width:600px;margin:auto">
+        <h1 style="color:#16a34a;">Welcome to ReUseHub, ${user.username}! 👋</h1>
+
+        <p>Thank you for joining <b>ReUseHub</b>.</p>
+
+        <p>You can now:</p>
+
+        <ul>
+          <li>🛒 Buy quality used products</li>
+          <li>💰 Sell your unused items</li>
+          <li>📍 Discover products near your location</li>
+          <li>❤️ Save items to your wishlist</li>
+        </ul>
+
+        <a href="https://reuseme-eight.vercel.app"
+           style="display:inline-block;
+                  background:#16a34a;
+                  color:white;
+                  text-decoration:none;
+                  padding:12px 24px;
+                  border-radius:8px;">
+          Visit ReUseHub
+        </a>
+
+        <br><br>
+
+        <p>Happy Trading!</p>
+
+        <p><b>The ReUseHub Team</b></p>
+      </div>
+    `
+  });
+} catch (err) {
+  console.error("Welcome email failed:", err);
+}
 
     if (user) {
       res.status(201).json({
