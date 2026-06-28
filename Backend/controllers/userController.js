@@ -330,7 +330,7 @@ const forgotPassword = async (req, res) => {
 
     // Reset link
     const resetLink =
-`http://localhost:5173/#/reset-password?token=${resetToken}`;
+`https://reuseme-eight.vercel.app/#/reset-password?token=${resetToken}`;
 
     // Send email
     await transporter.sendMail({
