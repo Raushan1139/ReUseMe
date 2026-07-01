@@ -323,7 +323,7 @@ const updateProfile = async (req, res, next) => {
 // @access  Private
 const updateLocation = async (req, res, next) => {
   try {
-    const { latitude, longitude } = req.body;
+    const { latitude, longitude, city, state: stateName, pincode } = req.body;
 
     if (latitude === undefined || longitude === undefined) {
       res.status(400);
@@ -340,6 +340,9 @@ const updateLocation = async (req, res, next) => {
       type: 'Point',
       coordinates: [Number(longitude), Number(latitude)]
     };
+    if (city !== undefined) user.city = city;
+    if (stateName !== undefined) user.state = stateName;
+    if (pincode !== undefined) user.pincode = pincode;
 
     await user.save();
     res.json({ success: true });

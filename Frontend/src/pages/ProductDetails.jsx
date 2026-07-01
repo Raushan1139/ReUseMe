@@ -42,6 +42,49 @@ export function ProductDetails({ productId }) {
     const hasSpecs = product.specifications && Object.values(product.specifications).some(val => val && val.trim() !== '');
     const isSeller = state.currentUser && product.seller && state.currentUser._id === product.seller.id;
 
+    const getTravelEstimates = () => {
+      const userCoords = state.userCoordinates;
+      if (!userCoords || !product.coordinates) return null;
+      
+      const lat1 = userCoords.latitude;
+      const lon1 = userCoords.longitude;
+      const lat2 = product.coordinates.latitude;
+      const lon2 = product.coordinates.longitude;
+      
+      if (lat1 === 0 && lon1 === 0) return null;
+      
+      const R = 6371; // Radius in km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      const dist = R * c; // Distance in km
+      
+      // Average speeds in km/h
+      const walkSpeed = 5;
+      const cycleSpeed = 15;
+      const driveSpeed = 40;
+      
+      const formatTime = (hours) => {
+        const mins = Math.round(hours * 60);
+        if (mins < 60) return `${mins} min`;
+        const hrs = Math.floor(mins / 60);
+        const remainingMins = mins % 60;
+        return remainingMins > 0 ? `${hrs}h ${remainingMins}m` : `${hrs}h`;
+      };
+      
+      return {
+        distance: dist < 1 ? `${Math.round(dist * 1000)} m` : `${dist.toFixed(1)} km`,
+        walk: formatTime(dist / walkSpeed),
+        cycle: formatTime(dist / cycleSpeed),
+        drive: formatTime(dist / driveSpeed)
+      };
+    };
+    const travelTime = getTravelEstimates();
+
     // Determine condition badge style class
     let condBadgeColor = 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-800/40';
     if (product.condition === 'New') {
@@ -162,13 +205,44 @@ export function ProductDetails({ productId }) {
                 <span class="text-3xl font-black text-emerald-600 dark:text-emerald-400">₹${product.price}</span>
               </div>
               <div class="flex flex-col items-end">
-                <span class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-550">Location</span>
+                <span class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-555">Location</span>
                 <span class="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-0.5 mt-0.5">
                   <i data-lucide="map-pin" class="w-4 h-4 text-emerald-500"></i>
                   ${product.location}
                 </span>
               </div>
             </div>
+
+            <!-- Proximity & Travel Times -->
+            ${travelTime ? `
+              <div class="p-4 bg-slate-50/50 dark:bg-slate-800/20 border border-slate-100 dark:border-slate-800/80 rounded-2xl flex flex-col gap-3">
+                <div class="flex items-center justify-between text-xs font-bold text-slate-555 dark:text-slate-450">
+                  <span class="flex items-center gap-1.5">
+                    <i data-lucide="navigation" class="w-3.5 h-3.5 rotate-45 text-emerald-600"></i>
+                    Distance Proximity
+                  </span>
+                  <span class="text-emerald-600 dark:text-emerald-400 text-sm font-extrabold">${travelTime.distance} away</span>
+                </div>
+                
+                <div class="grid grid-cols-3 gap-2.5 mt-1 border-t border-slate-100 dark:border-slate-800/40 pt-3">
+                  <div class="flex flex-col items-center p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-50 dark:border-slate-800 text-center gap-1.5 shadow-sm">
+                    <i data-lucide="footprints" class="w-4 h-4 text-slate-450"></i>
+                    <div class="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Walk</div>
+                    <div class="text-xs font-black text-slate-800 dark:text-slate-205">${travelTime.walk}</div>
+                  </div>
+                  <div class="flex flex-col items-center p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-50 dark:border-slate-800 text-center gap-1.5 shadow-sm">
+                    <i data-lucide="bike" class="w-4 h-4 text-slate-450"></i>
+                    <div class="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Cycle</div>
+                    <div class="text-xs font-black text-slate-800 dark:text-slate-205">${travelTime.cycle}</div>
+                  </div>
+                  <div class="flex flex-col items-center p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-50 dark:border-slate-800 text-center gap-1.5 shadow-sm">
+                    <i data-lucide="car" class="w-4 h-4 text-slate-450"></i>
+                    <div class="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Drive</div>
+                    <div class="text-xs font-black text-slate-800 dark:text-slate-205">${travelTime.drive}</div>
+                  </div>
+                </div>
+              </div>
+            ` : ''}
 
             <!-- Action buttons -->
             <div class="flex flex-col gap-3">

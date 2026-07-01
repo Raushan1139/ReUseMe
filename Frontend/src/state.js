@@ -1,4 +1,5 @@
 import { getUserLocation } from './utils/location.js';
+import { reverseGeocode } from './utils/reverseGeocoding.js';
 
 const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:3001/api'
@@ -29,6 +30,16 @@ try {
 }
 
 let userCoordinates = null;
+let detectedLocation = null;
+try {
+  const savedLoc = localStorage.getItem('detectedLocation');
+  if (savedLoc) {
+    detectedLocation = JSON.parse(savedLoc);
+    userCoordinates = { latitude: detectedLocation.latitude, longitude: detectedLocation.longitude };
+  }
+} catch (e) {
+  console.error("Failed to parse detectedLocation", e);
+}
 let products = [];
 
 // Active filters
@@ -73,11 +84,25 @@ export const state = {
   get userCoordinates() { return userCoordinates; },
   set userCoordinates(val) { userCoordinates = val; },
 
+  get detectedLocation() {
+    return detectedLocation || { city: 'Patna', state: 'Bihar', pincode: '800001', latitude: 25.5941, longitude: 85.1376 };
+  },
+
   async detectLocationAndFetch() {
     try {
-      const location = await getUserLocation();
-      userCoordinates = location;
+      const coords = await getUserLocation();
+      userCoordinates = coords;
       
+      const address = await reverseGeocode(coords.latitude, coords.longitude);
+      detectedLocation = {
+        city: address.city,
+        state: address.state,
+        pincode: address.pincode,
+        latitude: coords.latitude,
+        longitude: coords.longitude
+      };
+      localStorage.setItem('detectedLocation', JSON.stringify(detectedLocation));
+
       const token = localStorage.getItem('token');
       if (token) {
         fetch(`${API_URL}/auth/location`, {
@@ -87,15 +112,55 @@ export const state = {
             'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify({
-            latitude: location.latitude,
-            longitude: location.longitude
+            latitude: coords.latitude,
+            longitude: coords.longitude,
+            city: address.city,
+            state: address.state,
+            pincode: address.pincode
           })
         }).catch(err => console.warn("Failed to sync location to backend:", err));
       }
     } catch (e) {
       console.warn("Location prompt denied or failed:", e);
+      if (!detectedLocation) {
+        detectedLocation = { city: 'Patna', state: 'Bihar', pincode: '800001', latitude: 25.5941, longitude: 85.1376 };
+      }
     }
     await this.fetchProducts();
+    notify();
+  },
+
+  async setSelectedLocation(city, lat, lng, stateName = 'Bihar', pincode = '') {
+    detectedLocation = {
+      city,
+      state: stateName,
+      pincode,
+      latitude: lat,
+      longitude: lng
+    };
+    userCoordinates = { latitude: lat, longitude: lng };
+    localStorage.setItem('detectedLocation', JSON.stringify(detectedLocation));
+    
+    const token = localStorage.getItem('token');
+    if (token) {
+      fetch(`${API_URL}/auth/location`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          latitude: lat,
+          longitude: lng,
+          city,
+          state: stateName,
+          pincode
+        })
+      }).catch(err => console.warn("Failed to sync manual location to backend:", err));
+    }
+    
+    await this.fetchProducts();
+    notify();
   },
 
   // Initialize state
@@ -558,6 +623,58 @@ export const state = {
     }
   },
 
+  checkAndNotifyNearbyProducts(prodList) {
+    if (!userCoordinates || (userCoordinates.latitude === 0 && userCoordinates.longitude === 0)) return;
+    
+    const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+    const now = Date.now();
+    
+    const nearbyNewItems = prodList.filter(p => {
+      if (!p.coordinates) return false;
+      
+      // Only alert for items created in the last 24 hours
+      const ageMs = now - new Date(p.createdAt).getTime();
+      if (ageMs > ONE_DAY_MS) return false;
+      
+      const lat1 = userCoordinates.latitude;
+      const lon1 = userCoordinates.longitude;
+      const lat2 = p.coordinates.latitude;
+      const lon2 = p.coordinates.longitude;
+      
+      const R = 6371; // Radius in km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      const dist = R * c;
+      
+      return dist <= 5; // Within 5 km
+    });
+    
+    if (nearbyNewItems.length > 0) {
+      const topItem = nearbyNewItems[0];
+      const count = nearbyNewItems.length;
+      
+      const lastNotify = localStorage.getItem('last_nearby_notify_time');
+      if (lastNotify && now - parseInt(lastNotify) < 15 * 60 * 1000) {
+        return; // Rate limit alerts to once every 15 minutes
+      }
+      
+      localStorage.setItem('last_nearby_notify_time', now.toString());
+      
+      const alertMsg = count === 1 
+        ? `📍 New listing posted within 5 km: "${topItem.title}"`
+        : `📍 ${count} new listings posted near you in the last 24 hours!`;
+      
+      setTimeout(() => {
+        this.showToast(alertMsg, "success");
+      }, 2000);
+    }
+  },
+
   async fetchProducts() {
     try {
       // Build query parameters based on active filters
@@ -581,6 +698,7 @@ export const state = {
       const res = await fetch(`${API_URL}/products?${queryParams.toString()}`);
       if (res.ok) {
         products = await res.json();
+        this.checkAndNotifyNearbyProducts(products);
         notify();
       } else {
         console.warn("Backend products fetch failed.");
