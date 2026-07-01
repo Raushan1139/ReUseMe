@@ -13,6 +13,34 @@ export function ProductCard(product) {
     return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
   };
   const formattedBuyDate = getFormattedBuyDate(product.buyDate);
+
+  const getDistanceString = () => {
+    const userCoords = state.userCoordinates;
+    if (!userCoords || !product.coordinates) return null;
+    
+    const lat1 = userCoords.latitude;
+    const lon1 = userCoords.longitude;
+    const lat2 = product.coordinates.latitude;
+    const lon2 = product.coordinates.longitude;
+    
+    if (lat1 === 0 && lon1 === 0) return null; // Default coordinates
+    
+    const R = 6371; // Radius of the earth in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const dist = R * c; // Distance in km
+    
+    if (dist < 1) {
+      return `${Math.round(dist * 1000)} m away`;
+    }
+    return `${dist.toFixed(1)} km away`;
+  };
+  const distanceStr = getDistanceString();
   
   // Set up condition badge color classes
   let condColor = '';
@@ -64,10 +92,18 @@ export function ProductCard(product) {
         <!-- Category & Location -->
         <div class="flex items-center justify-between text-xs text-slate-400 dark:text-slate-500">
           <span>${product.category}</span>
-          <span class="flex items-center gap-0.5">
-            <i data-lucide="map-pin" class="w-3 h-3"></i>
-            ${product.location.split(',')[0]}
-          </span>
+          <div class="flex items-center gap-2">
+            ${distanceStr ? `
+              <span class="inline-flex items-center gap-0.5 text-emerald-600 dark:text-emerald-405 font-medium">
+                <i data-lucide="navigation" class="w-3 h-3 rotate-45"></i>
+                ${distanceStr}
+              </span>
+            ` : ''}
+            <span class="flex items-center gap-0.5">
+              <i data-lucide="map-pin" class="w-3 h-3"></i>
+              ${product.location.split(',')[0]}
+            </span>
+          </div>
         </div>
         
         <!-- Product Title -->

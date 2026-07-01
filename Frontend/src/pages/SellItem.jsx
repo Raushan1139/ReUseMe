@@ -1,5 +1,7 @@
 import { state } from '../state.js';
 import { categories, popularLocations } from '../data/products.js';
+import { getUserLocation } from '../utils/location.js';
+import { reverseGeocode, forwardGeocode } from '../utils/reverseGeocoding.js';
 
 const locationCoordinates = {
   "Araria, Bihar": { latitude: 26.1509, longitude: 87.4375 },
@@ -162,7 +164,9 @@ export function SellItem(params = {}) {
     condition: 'Good',
     description: '',
     images: [],
-    location: 'Patna, Bihar',
+    location: `${state.detectedLocation.city}, ${state.detectedLocation.state}`,
+    latitude: state.detectedLocation.latitude || 25.5941,
+    longitude: state.detectedLocation.longitude || 85.1376,
     buyDate: '',
     specifications: {}
   };
@@ -191,6 +195,8 @@ export function SellItem(params = {}) {
         description: prodToEdit.description || '',
         images: prodToEdit.images || [],
         location: prodToEdit.location || 'Patna, Bihar',
+        latitude: prodToEdit.coordinates ? prodToEdit.coordinates.latitude : 25.5941,
+        longitude: prodToEdit.coordinates ? prodToEdit.coordinates.longitude : 85.1376,
         buyDate: prodToEdit.buyDate || '',
         specifications: prodToEdit.specifications || {}
       };
@@ -285,19 +291,35 @@ export function SellItem(params = {}) {
                 </select>
               </div>
 
-              <!-- Location -->
+              <!-- Location with Autofill -->
               <div>
                 <label for="sell-location" class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Location</label>
-                <select 
-                  id="sell-location" 
-                  required
-                  class="w-full px-4 py-3 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-800 dark:text-slate-100"
-                >
-                  ${popularLocations.filter(loc => loc !== "Use Current Location").map(loc => `
-                    <option value="${loc}" ${listData.location === loc ? 'selected' : ''}>${loc}</option>
-                  `).join('')}
-                </select>
-               </div>
+                <div class="relative flex gap-2">
+                  <div class="relative flex-grow">
+                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                      <i data-lucide="map-pin" class="w-4 h-4"></i>
+                    </span>
+                    <input 
+                      type="text" 
+                      id="sell-location" 
+                      required
+                      placeholder="e.g. Patna, Bihar"
+                      value="${listData.location || ''}"
+                      class="w-full pl-9 pr-4 py-3 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-800 dark:text-slate-100"
+                    />
+                  </div>
+                  <button 
+                    type="button" 
+                    id="detect-gps-sell-btn"
+                    class="px-4 py-3 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/20 text-emerald-655 dark:text-emerald-400 text-xs font-bold rounded-xl transition flex items-center gap-1.5 cursor-pointer focus:outline-none shrink-0"
+                  >
+                    <i data-lucide="navigation" class="w-3.5 h-3.5"></i>
+                    <span>GPS</span>
+                  </button>
+                </div>
+                <!-- Autocomplete suggestions dropdown -->
+                <div id="sell-loc-autocomplete" class="absolute left-0 right-0 mt-2 max-h-48 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl z-50 hidden"></div>
+              </div>
              </div>
 
              <!-- Buy Date -->
@@ -530,7 +552,7 @@ export function SellItem(params = {}) {
     const updateLiveCard = () => {
       pTitle.innerText = listData.title || 'Untitled Listing';
       pCat.innerText = listData.category;
-      pPrice.innerText = `$${listData.price || '0'}`;
+      pPrice.innerText = `₹${listData.price || '0'}`;
       pLoc.innerText = listData.location.split(',')[0];
       pCond.innerText = listData.condition;
       
@@ -572,10 +594,91 @@ export function SellItem(params = {}) {
       updateLiveCard();
     });
 
-    selectLoc.addEventListener('change', (e) => {
-      listData.location = e.target.value;
-      pLoc.innerText = listData.location.split(',')[0];
-    });
+    // GPS Detect inside SellItem form
+    const detectGpsBtn = container.querySelector('#detect-gps-sell-btn');
+    if (detectGpsBtn) {
+      detectGpsBtn.addEventListener('click', async () => {
+        const textSpan = detectGpsBtn.querySelector('span');
+        textSpan.innerText = '...';
+        detectGpsBtn.disabled = true;
+        
+        try {
+          const coords = await getUserLocation();
+          const address = await reverseGeocode(coords.latitude, coords.longitude);
+          
+          listData.location = `${address.city}, ${address.state}`;
+          listData.latitude = coords.latitude;
+          listData.longitude = coords.longitude;
+          
+          const inputLoc = container.querySelector('#sell-location');
+          if (inputLoc) inputLoc.value = listData.location;
+          
+          pLoc.innerText = address.city;
+          state.showToast("Location detected successfully!", "success");
+        } catch (err) {
+          state.showToast("Failed to detect location", "error");
+        } finally {
+          textSpan.innerText = 'GPS';
+          detectGpsBtn.disabled = false;
+        }
+      });
+    }
+
+    // Autocomplete for location input in SellItem form
+    const sellLocInput = container.querySelector('#sell-location');
+    const sellAutocompleteDiv = container.querySelector('#sell-loc-autocomplete');
+    let sellSearchTimeout;
+    
+    if (sellLocInput && sellAutocompleteDiv) {
+      sellLocInput.addEventListener('input', (e) => {
+        const q = e.target.value.trim();
+        clearTimeout(sellSearchTimeout);
+        if (q.length < 3) {
+          sellAutocompleteDiv.classList.add('hidden');
+          return;
+        }
+        
+        sellSearchTimeout = setTimeout(async () => {
+          const matches = await forwardGeocode(q);
+          if (matches.length > 0) {
+            sellAutocompleteDiv.innerHTML = matches.map(m => `
+              <button type="button" class="w-full text-left p-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 border-b border-slate-100 dark:border-slate-700 text-xs sm:text-sm text-slate-700 dark:text-slate-200 cursor-pointer sell-loc-option-btn" 
+                data-display="${m.display_name}" 
+                data-city="${m.city}"
+                data-lat="${m.latitude}" 
+                data-lng="${m.longitude}">
+                ${m.display_name}
+              </button>
+            `).join('');
+            
+            sellAutocompleteDiv.querySelectorAll('.sell-loc-option-btn').forEach(btn => {
+              btn.addEventListener('click', () => {
+                const display = btn.getAttribute('data-display');
+                const city = btn.getAttribute('data-city');
+                
+                listData.location = display.split(',')[0] + ', ' + (display.split(',')[1] || '').trim();
+                listData.latitude = parseFloat(btn.getAttribute('data-lat'));
+                listData.longitude = parseFloat(btn.getAttribute('data-lng'));
+                
+                sellLocInput.value = listData.location;
+                pLoc.innerText = city;
+                sellAutocompleteDiv.classList.add('hidden');
+              });
+            });
+            sellAutocompleteDiv.classList.remove('hidden');
+          } else {
+            sellAutocompleteDiv.classList.add('hidden');
+          }
+        }, 400);
+      });
+      
+      // Close autocomplete on click outside
+      document.addEventListener('click', (e) => {
+        if (e.target !== sellLocInput) {
+          sellAutocompleteDiv.classList.add('hidden');
+        }
+      });
+    }
 
     inputDesc.addEventListener('input', (e) => {
       listData.description = e.target.value;
@@ -686,17 +789,28 @@ export function SellItem(params = {}) {
         return;
       }
 
-      const selectedLoc = listData.location;
-      const coords = locationCoordinates[selectedLoc] || { latitude: 25.5941, longitude: 85.1376 };
+      const typedLoc = container.querySelector('#sell-location').value.trim();
+      
+      let finalLat = listData.latitude;
+      let finalLng = listData.longitude;
+      
+      // If they typed manually and it differs from state coords, geocode it
+      if (typedLoc && typedLoc !== listData.location) {
+        const matches = await forwardGeocode(typedLoc);
+        if (matches && matches.length > 0) {
+          finalLat = matches[0].latitude;
+          finalLng = matches[0].longitude;
+        }
+      }
 
       const payload = {
         title: listData.title,
         category: listData.category,
         price: listData.price,
         condition: listData.condition,
-        city: selectedLoc,
-        latitude: coords.latitude,
-        longitude: coords.longitude,
+        city: typedLoc,
+        latitude: finalLat,
+        longitude: finalLng,
         description: listData.description,
         images: listData.images,
         buyDate: listData.buyDate || undefined,
