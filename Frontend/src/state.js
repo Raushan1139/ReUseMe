@@ -1,4 +1,5 @@
 import { getUserLocation } from './utils/location.js';
+import { socketClient } from './socket/socket.js';
 import { reverseGeocode } from './utils/reverseGeocoding.js';
 
 const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
@@ -173,6 +174,7 @@ export const state = {
     // Check token and validate with backend
     const token = localStorage.getItem('token');
     if (token) {
+      socketClient.connectSocket(token);
       try {
         const res = await fetch(`${API_URL}/auth/me`, {
           headers: getAuthHeaders()
@@ -207,6 +209,7 @@ export const state = {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('wishlist');
+    socketClient.disconnectSocket();
   },
 
   // Theme Manager
@@ -251,6 +254,7 @@ export const state = {
         currentUser = data.user;
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(currentUser));
+        socketClient.connectSocket(data.token);
         
         // Fetch wishlist items
         const wishRes = await fetch(`${API_URL}/auth/wishlist`, {
@@ -292,6 +296,7 @@ export const state = {
         currentUser = data.user;
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(currentUser));
+        socketClient.connectSocket(data.token);
         wishlist = [];
         localStorage.setItem('wishlist', JSON.stringify(wishlist));
         

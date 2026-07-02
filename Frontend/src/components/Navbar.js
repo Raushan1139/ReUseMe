@@ -105,6 +105,9 @@ export function Navbar(activePath = '') {
                 <a href="#/profile" class="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800 transition">
                   <i data-lucide="user" class="w-4 h-4 text-slate-400"></i> My Profile
                 </a>
+                <a href="#/chat" class="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800 transition">
+                  <i data-lucide="message-square" class="w-4 h-4 text-slate-400"></i> Messages
+                </a>
                 <a href="#/wishlist" class="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800 transition">
                   <i data-lucide="heart" class="w-4 h-4 text-slate-400"></i> My Wishlist
                 </a>
@@ -194,6 +197,9 @@ export function Navbar(activePath = '') {
               <i data-lucide="plus-circle" class="w-5 h-5"></i> Sell Item
             </a>
             ${user ? `
+              <a href="#/chat" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 font-medium transition ${activePath === '/chat' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400' : ''}">
+                <i data-lucide="message-square" class="w-5 h-5"></i> Messages
+              </a>
               <a href="#/profile" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 font-medium transition ${activePath === '/profile' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400' : ''}">
                 <i data-lucide="user" class="w-5 h-5"></i> My Profile
               </a>

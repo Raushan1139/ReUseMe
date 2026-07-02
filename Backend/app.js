@@ -7,6 +7,7 @@ const { errorHandler } = require('./middleware/errorHandler');
 
 const authRoutes = require('./routes/auth');
 const productRoutes = require('./routes/products');
+const chatRoutes = require('./routes/chatRoutes');
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Wildcard 404 handler for API routes
 app.use('/api', (req, res) => {
@@ -111,7 +113,12 @@ mongoose
       console.warn('Migration failed or skipped:', migrationErr.message);
     }
 
-    app.listen(PORT, () => {
+    const http = require('http');
+    const server = http.createServer(app);
+    const { initSocket } = require('./socket/socket');
+    initSocket(server);
+
+    server.listen(PORT, () => {
       console.log(`Express API Server running on port ${PORT}`);
       console.log(`Server URL: http://localhost:${PORT}`);
     });

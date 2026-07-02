@@ -531,9 +531,64 @@ export function ProductDetails({ productId }) {
     // Send Message Button Modal
     const sendBtn = container.querySelector('#send-modal-message-btn');
     if (sendBtn) {
-      sendBtn.addEventListener('click', () => {
-        state.showToast("Message sent to seller successfully!", "success");
-        closeModal();
+      sendBtn.addEventListener('click', async () => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          state.showToast("Please log in to contact the seller.", "error");
+          window.location.hash = '#/login';
+          return;
+        }
+
+        const msgText = txtArea.value.trim();
+        if (!msgText) {
+          state.showToast("Please enter a message.", "error");
+          return;
+        }
+
+        try {
+          // 1. Get or create conversation
+          const convRes = await fetch(`${state.API_URL}/chat/conversations`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              productId: product.id,
+              sellerId: product.seller.id
+            })
+          });
+
+          if (!convRes.ok) {
+            const errData = await convRes.json().catch(() => ({}));
+            throw new Error(errData.message || 'Failed to initialize conversation');
+          }
+
+          const conversation = await convRes.json();
+
+          // 2. Send initial message
+          const msgRes = await fetch(`${state.API_URL}/chat/conversations/${conversation._id}/messages`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ text: msgText })
+          });
+
+          if (!msgRes.ok) {
+            console.warn('Failed to send initial message body, but conversation was created.');
+          }
+
+          state.showToast("Message sent to seller successfully!", "success");
+          closeModal();
+
+          // 3. Redirect to Chat Page
+          window.location.hash = `#/chat?conversationId=${conversation._id}`;
+        } catch (err) {
+          console.error('Contact seller failed:', err);
+          state.showToast(err.message || 'Failed to contact seller.', 'error');
+        }
       });
     }
 

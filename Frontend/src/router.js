@@ -8,6 +8,7 @@ import { Wishlist } from './pages/Wishlist.jsx';
 import { Profile } from './pages/Profile.jsx';
 import { ForgotPassword } from './pages/ForgotPassword.jsx';
 import { ResetPassword } from './pages/ResetPassword.jsx';
+import { Chat } from './pages/Chat.jsx';
 import { Navbar } from './components/Navbar.js';
 import { Footer } from './components/Footer.js';
 
@@ -21,7 +22,9 @@ const routes = [
   { path: /^\/wishlist$/, page: Wishlist },
   { path: /^\/profile$/, page: Profile },
   { path: /^\/forgot-password$/, page: ForgotPassword },
-  { path: /^\/reset-password$/, page: ResetPassword }
+  { path: /^\/reset-password$/, page: ResetPassword },
+  { path: /^\/chat$/, page: Chat },
+  { path: /^\/chat\/([^/]+)$/, page: Chat, paramName: 'conversationId' }
 ];
 
 export function initRouter() {
