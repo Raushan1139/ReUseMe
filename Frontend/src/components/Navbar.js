@@ -23,45 +23,23 @@ export function Navbar(activePath = '') {
         <!-- Search Bar & Location Container (Desktop/Tablet) -->
         <div class="hidden md:flex flex-grow max-w-2xl relative mx-4 items-center gap-2" id="desktop-search-container">
           
-          <!-- Location Picker (Searchable Popover) -->
-          <div class="relative shrink-0 w-44" id="nav-location-picker-container">
-            <button 
-              id="nav-location-picker-btn" 
-              class="w-full pl-9 pr-8 py-2 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-750 dark:text-slate-200 text-left truncate relative"
+          <!-- Location Picker (OLX Style) -->
+          <div class="relative shrink-0 w-44">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400 dark:text-slate-500">
+              <i data-lucide="map-pin" class="w-4 h-4"></i>
+            </span>
+            <select 
+              id="nav-location-select" 
+              class="w-full pl-9 pr-8 py-2 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-700 dark:text-slate-200 appearance-none cursor-pointer"
             >
-              <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400 dark:text-slate-500">
-                <i data-lucide="map-pin" class="w-4 h-4"></i>
-              </span>
-              <span id="nav-location-text-label">${state.filters.location ? state.filters.location.split(',')[0] : 'All Locations'}</span>
-              <span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-450">
-                <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
-              </span>
-            </button>
-            
-            <!-- Searchable Location Popover dropdown -->
-            <div id="nav-location-popover" class="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl overflow-hidden z-50 hidden flex flex-col p-3 gap-2 w-56 glass">
-              <button id="nav-popover-gps-btn" class="w-full flex items-center gap-2 p-2 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 text-emerald-600 dark:text-emerald-450 text-xs font-bold rounded-xl transition text-left">
-                <i data-lucide="locate" class="w-4 h-4"></i>
-                <span>Use GPS / Current Location</span>
-              </button>
-              
-              <div class="border-t border-slate-100 dark:border-slate-850 my-1"></div>
-
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 text-slate-400">
-                  <i data-lucide="search" class="w-3.5 h-3.5"></i>
-                </span>
-                <input 
-                  type="text" 
-                  id="nav-location-search" 
-                  placeholder="Search district..." 
-                  class="w-full pl-8 pr-2.5 py-1.5 text-[11px] rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-850 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                />
-              </div>
-              
-              <div id="nav-location-list" class="max-h-44 overflow-y-auto flex flex-col gap-0.5 mt-1">
-              </div>
-            </div>
+              <option value="">All Locations</option>
+              ${popularLocations.map(loc => `
+                <option value="${loc}" ${state.filters.location === loc ? 'selected' : ''}>${loc.split(',')[0]}</option>
+              `).join('')}
+            </select>
+            <span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-450">
+              <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+            </span>
           </div>
 
           <!-- Keyword Search -->
@@ -196,41 +174,22 @@ export function Navbar(activePath = '') {
           </div>
 
           <!-- Mobile Location select -->
-          <div class="mt-4 relative" id="mobile-location-picker-container">
-            <button 
-              id="mobile-location-picker-btn" 
-              class="w-full pl-9 pr-8 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-800 dark:text-slate-100 text-left truncate relative"
+          <div class="mt-4 relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400 dark:text-slate-500">
+              <i data-lucide="map-pin" class="w-4 h-4"></i>
+            </span>
+            <select 
+              id="mobile-location-select" 
+              class="w-full pl-9 pr-8 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-800 dark:text-slate-100 appearance-none cursor-pointer"
             >
-              <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400 dark:text-slate-500">
-                <i data-lucide="map-pin" class="w-4 h-4"></i>
-              </span>
-              <span id="mobile-location-text-label">${state.filters.location ? state.filters.location.split(',')[0] : 'All Locations'}</span>
-              <span class="absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-none text-slate-450">
-                <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
-              </span>
-            </button>
-            
-            <!-- Mobile Searchable popover -->
-            <div id="mobile-location-popover" class="mt-2 bg-slate-50 dark:bg-slate-800/40 border border-slate-150 dark:border-slate-850 rounded-xl overflow-hidden hidden flex-col p-3 gap-2">
-              <button id="mobile-popover-gps-btn" class="w-full flex items-center gap-2 p-2 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 text-emerald-600 dark:text-emerald-450 text-xs font-bold rounded-lg transition text-left">
-                <i data-lucide="locate" class="w-4 h-4"></i>
-                <span>Use GPS / Current Location</span>
-              </button>
-              <div class="border-t border-slate-200 dark:border-slate-700 my-0.5"></div>
-              <div class="relative">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 text-slate-400">
-                  <i data-lucide="search" class="w-3.5 h-3.5"></i>
-                </span>
-                <input 
-                  type="text" 
-                  id="mobile-location-search" 
-                  placeholder="Search district..." 
-                  class="w-full pl-8 pr-2.5 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                />
-              </div>
-              <div id="mobile-location-list" class="max-h-36 overflow-y-auto flex flex-col gap-0.5 mt-1">
-              </div>
-            </div>
+              <option value="">All Locations</option>
+              ${popularLocations.map(loc => `
+                <option value="${loc}" ${state.filters.location === loc ? 'selected' : ''}>${loc.split(',')[0]}</option>
+              `).join('')}
+            </select>
+            <span class="absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-none text-slate-450">
+              <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+            </span>
           </div>
 
           <!-- Quick Navigation Links -->
@@ -363,10 +322,11 @@ export function Navbar(activePath = '') {
 
   // Search input processing (Live suggestions and Filtering)
   const navSearchInput = header.querySelector('#nav-search-input');
+  const navLocationSelect = header.querySelector('#nav-location-select');
   const clearSearchBtn = header.querySelector('#clear-search-btn');
   const suggestionsBox = header.querySelector('#search-suggestions');
   const mobileSearchInput = header.querySelector('#mobile-search-input');
- 
+
   const checkClearBtn = (val) => {
     if (val) {
       clearSearchBtn.classList.remove('hidden');
@@ -374,6 +334,21 @@ export function Navbar(activePath = '') {
       clearSearchBtn.classList.add('hidden');
     }
   };
+
+  // Location selector change handler
+  if (navLocationSelect) {
+    navLocationSelect.addEventListener('change', async (e) => {
+      if (e.target.value === "Use Current Location") {
+        await state.detectLocationAndFetch();
+        state.setFilters({ location: "" });
+      } else {
+        state.setFilters({ location: e.target.value });
+      }
+      if (window.location.hash !== '#/') {
+        window.location.hash = '#/';
+      }
+    });
+  }
 
   if (navSearchInput) {
     checkClearBtn(navSearchInput.value);
@@ -473,140 +448,19 @@ export function Navbar(activePath = '') {
     });
   }
 
-  // Desktop Searchable Location Popover Logic
-  const desktopPickerContainer = header.querySelector('#nav-location-picker-container');
-  const desktopPickerBtn = header.querySelector('#nav-location-picker-btn');
-  const desktopPopover = header.querySelector('#nav-location-popover');
-  const desktopSearch = header.querySelector('#nav-location-search');
-  const desktopList = header.querySelector('#nav-location-list');
-  const desktopGpsBtn = header.querySelector('#nav-popover-gps-btn');
-  const desktopLabel = header.querySelector('#nav-location-text-label');
-
-  const renderDesktopLocationList = (filterText = '') => {
-    const query = filterText.toLowerCase().trim();
-    const filtered = popularLocations.filter(loc => 
-      loc.toLowerCase().includes(query)
-    );
-
-    let listHtml = `<button data-val="" class="w-full px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800 rounded-xl select-location-btn truncate">All Locations</button>`;
-    
-    listHtml += filtered.map(loc => `
-      <button data-val="${loc}" class="w-full px-3 py-2 text-left text-xs text-slate-650 hover:bg-slate-50 dark:text-slate-350 dark:hover:bg-slate-800 rounded-xl select-location-btn truncate">
-        ${loc.split(',')[0]}
-      </button>
-    `).join('');
-
-    desktopList.innerHTML = listHtml;
-
-    // Wire up buttons
-    desktopList.querySelectorAll('.select-location-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const val = btn.getAttribute('data-val');
-        state.setFilters({ location: val });
-        desktopLabel.innerText = val ? val.split(',')[0] : 'All Locations';
-        desktopPopover.classList.add('hidden');
-        if (window.location.hash !== '#/') {
-          window.location.hash = '#/';
-        }
-      });
-    });
-  };
-
-  if (desktopPickerBtn) {
-    desktopPickerBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      desktopPopover.classList.toggle('hidden');
-      if (!desktopPopover.classList.contains('hidden')) {
-        desktopSearch.value = '';
-        renderDesktopLocationList();
-        desktopSearch.focus();
-      }
-    });
-
-    document.addEventListener('click', (e) => {
-      if (desktopPopover && !desktopPickerContainer.contains(e.target)) {
-        desktopPopover.classList.add('hidden');
-      }
-    });
-
-    desktopSearch.addEventListener('input', (e) => {
-      renderDesktopLocationList(e.target.value);
-    });
-
-    desktopGpsBtn.addEventListener('click', async () => {
-      desktopPopover.classList.add('hidden');
-      desktopLabel.innerText = 'Detecting...';
-      try {
+  // Mobile location select listener
+  const mobileLocationSelect = header.querySelector('#mobile-location-select');
+  if (mobileLocationSelect) {
+    mobileLocationSelect.addEventListener('change', async (e) => {
+      if (e.target.value === "Use Current Location") {
         await state.detectLocationAndFetch();
         state.setFilters({ location: "" });
-        const detected = JSON.parse(localStorage.getItem('detectedLocation') || '{}');
-        desktopLabel.innerText = detected.city || 'Patna';
-      } catch (err) {
-        state.showToast('Failed to detect GPS location.', 'error');
-        desktopLabel.innerText = 'All Locations';
+      } else {
+        state.setFilters({ location: e.target.value });
       }
-    });
-  }
-
-  // Mobile Searchable Location Popover Logic
-  const mobilePickerContainer = header.querySelector('#mobile-location-picker-container');
-  const mobilePickerBtn = header.querySelector('#mobile-location-picker-btn');
-  const mobilePopover = header.querySelector('#mobile-location-popover');
-  const mobileSearch = header.querySelector('#mobile-location-search');
-  const mobileList = header.querySelector('#mobile-location-list');
-  const mobileGpsBtn = header.querySelector('#mobile-popover-gps-btn');
-  const mobileLabel = header.querySelector('#mobile-location-text-label');
-
-  const renderMobileLocationList = (filterText = '') => {
-    const query = filterText.toLowerCase().trim();
-    const filtered = popularLocations.filter(loc => 
-      loc.toLowerCase().includes(query)
-    );
-
-    let listHtml = `<button data-val="" class="w-full px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800 rounded-xl mobile-select-location-btn truncate">All Locations</button>`;
-    
-    listHtml += filtered.map(loc => `
-      <button data-val="${loc}" class="w-full px-3 py-2 text-left text-xs text-slate-650 hover:bg-slate-100 dark:text-slate-350 dark:hover:bg-slate-800 rounded-xl mobile-select-location-btn truncate">
-        ${loc.split(',')[0]}
-      </button>
-    `).join('');
-
-    mobileList.innerHTML = listHtml;
-
-    mobileList.querySelectorAll('.mobile-select-location-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const val = btn.getAttribute('data-val');
-        state.setFilters({ location: val });
-        mobileLabel.innerText = val ? val.split(',')[0] : 'All Locations';
-        closeDrawer();
-        if (window.location.hash !== '#/') {
-          window.location.hash = '#/';
-        }
-      });
-    });
-  };
-
-  if (mobilePickerBtn) {
-    mobilePickerBtn.addEventListener('click', () => {
-      mobilePopover.classList.toggle('hidden');
-      if (!mobilePopover.classList.contains('hidden')) {
-        mobileSearch.value = '';
-        renderMobileLocationList();
-      }
-    });
-
-    mobileSearch.addEventListener('input', (e) => {
-      renderMobileLocationList(e.target.value);
-    });
-
-    mobileGpsBtn.addEventListener('click', async () => {
-      mobilePopover.classList.add('hidden');
       closeDrawer();
-      try {
-        await state.detectLocationAndFetch();
-        state.setFilters({ location: "" });
-      } catch (err) {
-        state.showToast('Failed to detect GPS location.', 'error');
+      if (window.location.hash !== '#/') {
+        window.location.hash = '#/';
       }
     });
   }

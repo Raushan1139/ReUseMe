@@ -1,4 +1,5 @@
 export const popularLocations = [
+  "Use Current Location",
   "Araria, Bihar",
   "Arwal, Bihar",
   "Aurangabad, Bihar",
@@ -38,6 +39,47 @@ export const popularLocations = [
   "Vaishali, Bihar",
   "West Champaran, Bihar"
 ];
+
+export const locationCoordinates = {
+  "Araria, Bihar": { latitude: 26.1509, longitude: 87.4375 },
+  "Arwal, Bihar": { latitude: 25.2443, longitude: 84.6677 },
+  "Aurangabad, Bihar": { latitude: 24.7539, longitude: 84.3735 },
+  "Banka, Bihar": { latitude: 24.8848, longitude: 86.9242 },
+  "Begusarai, Bihar": { latitude: 25.4184, longitude: 86.1249 },
+  "Bhagalpur, Bihar": { latitude: 25.2445, longitude: 86.9718 },
+  "Bhojpur, Bihar": { latitude: 25.4678, longitude: 84.5218 },
+  "Buxar, Bihar": { latitude: 25.5647, longitude: 83.9777 },
+  "Darbhanga, Bihar": { latitude: 26.1542, longitude: 85.8918 },
+  "East Champaran, Bihar": { latitude: 26.6631, longitude: 84.9123 },
+  "Gaya, Bihar": { latitude: 24.7969, longitude: 85.0039 },
+  "Gopalganj, Bihar": { latitude: 26.4690, longitude: 84.4430 },
+  "Jamui, Bihar": { latitude: 24.9200, longitude: 86.2200 },
+  "Jehanabad, Bihar": { latitude: 25.2100, longitude: 84.9800 },
+  "Kaimur, Bihar": { latitude: 25.0400, longitude: 83.6200 },
+  "Katihar, Bihar": { latitude: 25.5300, longitude: 87.5700 },
+  "Khagaria, Bihar": { latitude: 25.5000, longitude: 86.4800 },
+  "Kishanganj, Bihar": { latitude: 26.2700, longitude: 87.9505 },
+  "Lakhisarai, Bihar": { latitude: 25.1800, longitude: 86.0900 },
+  "Madhepura, Bihar": { latitude: 25.9200, longitude: 86.7900 },
+  "Madhubani, Bihar": { latitude: 26.3500, longitude: 86.0800 },
+  "Munger, Bihar": { latitude: 25.3748, longitude: 86.4744 },
+  "Muzaffarpur, Bihar": { latitude: 26.1226, longitude: 85.3906 },
+  "Nalanda, Bihar": { latitude: 25.2000, longitude: 85.5200 },
+  "Nawada, Bihar": { latitude: 24.8800, longitude: 85.5400 },
+  "Patna, Bihar": { latitude: 25.5941, longitude: 85.1376 },
+  "Purnia, Bihar": { latitude: 25.7700, longitude: 87.4700 },
+  "Rohtas, Bihar": { latitude: 24.9500, longitude: 84.0100 },
+  "Saharsa, Bihar": { latitude: 25.8800, longitude: 86.6000 },
+  "Samastipur, Bihar": { latitude: 25.8600, longitude: 85.7800 },
+  "Saran, Bihar": { latitude: 25.8500, longitude: 84.8500 },
+  "Sheikhpura, Bihar": { latitude: 25.1400, longitude: 85.8500 },
+  "Sheohar, Bihar": { latitude: 26.5200, longitude: 85.2900 },
+  "Sitamarhi, Bihar": { latitude: 26.6000, longitude: 85.4800 },
+  "Siwan, Bihar": { latitude: 26.2200, longitude: 84.3600 },
+  "Supaul, Bihar": { latitude: 26.1200, longitude: 86.6000 },
+  "Vaishali, Bihar": { latitude: 25.6800, longitude: 85.2200 },
+  "West Champaran, Bihar": { latitude: 27.1600, longitude: 84.5000 }
+};
 
 export const categories = [
   { name: "Mobiles", icon: "smartphone", color: "indigo", count: 0 },

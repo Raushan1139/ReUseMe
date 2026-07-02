@@ -1,6 +1,7 @@
-import { getUserLocation } from './utils/location.js';
+import { getUserLocation, getIpLocation } from './utils/location.js';
 import { socketClient } from './socket/socket.js';
 import { reverseGeocode } from './utils/reverseGeocoding.js';
+import { locationCoordinates } from './data/products.js';
 
 const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:3001/api'
@@ -122,9 +123,43 @@ export const state = {
         }).catch(err => console.warn("Failed to sync location to backend:", err));
       }
     } catch (e) {
-      console.warn("Location prompt denied or failed:", e);
-      if (!detectedLocation) {
-        detectedLocation = { city: 'Patna', state: 'Bihar', pincode: '800001', latitude: 25.5941, longitude: 85.1376 };
+      console.warn("Browser GPS Geolocation failed, trying IP-based fallback...", e);
+      try {
+        const ipCoords = await getIpLocation();
+        userCoordinates = { latitude: ipCoords.latitude, longitude: ipCoords.longitude };
+        detectedLocation = {
+          city: ipCoords.city,
+          state: ipCoords.state,
+          pincode: ipCoords.pincode,
+          latitude: ipCoords.latitude,
+          longitude: ipCoords.longitude
+        };
+        localStorage.setItem('detectedLocation', JSON.stringify(detectedLocation));
+
+        const token = localStorage.getItem('token');
+        if (token) {
+          fetch(`${API_URL}/auth/location`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              latitude: ipCoords.latitude,
+              longitude: ipCoords.longitude,
+              city: ipCoords.city,
+              state: ipCoords.state,
+              pincode: ipCoords.pincode
+            })
+          }).catch(err => console.warn("Failed to sync IP location to backend:", err));
+        }
+        this.showToast(`Location detected: ${ipCoords.city}`, 'info');
+      } catch (ipErr) {
+        console.warn("IP Geolocation fallback failed, using default Patna...", ipErr);
+        if (!detectedLocation) {
+          detectedLocation = { city: 'Patna', state: 'Bihar', pincode: '800001', latitude: 25.5941, longitude: 85.1376 };
+        }
+        userCoordinates = { latitude: detectedLocation.latitude, longitude: detectedLocation.longitude };
       }
     }
     await this.fetchProducts();
@@ -736,7 +771,6 @@ export const state = {
       const queryParams = new URLSearchParams();
       if (filters.search) queryParams.append('search', filters.search);
       if (filters.category) queryParams.append('category', filters.category);
-      if (filters.location) queryParams.append('location', filters.location);
       if (filters.condition) queryParams.append('condition', filters.condition);
       if (filters.minPrice !== null && filters.minPrice !== '') {
         queryParams.append('minPrice', filters.minPrice);
@@ -745,9 +779,20 @@ export const state = {
         queryParams.append('maxPrice', filters.maxPrice);
       }
 
-      if (userCoordinates) {
-        queryParams.append('latitude', userCoordinates.latitude);
-        queryParams.append('longitude', userCoordinates.longitude);
+      let lat = userCoordinates ? userCoordinates.latitude : null;
+      let lng = userCoordinates ? userCoordinates.longitude : null;
+
+      // If a specific location is selected, resolve its coordinates to perform an adjacent/proximity search
+      if (filters.location && locationCoordinates[filters.location]) {
+        lat = locationCoordinates[filters.location].latitude;
+        lng = locationCoordinates[filters.location].longitude;
+      } else if (filters.location) {
+        queryParams.append('location', filters.location);
+      }
+
+      if (lat && lng) {
+        queryParams.append('latitude', lat);
+        queryParams.append('longitude', lng);
       }
 
       const res = await fetch(`${API_URL}/products?${queryParams.toString()}`);

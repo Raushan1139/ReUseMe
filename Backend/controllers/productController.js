@@ -14,7 +14,7 @@ const mapProduct = (p) => {
       longitude: p.location.coordinates[0],
       latitude: p.location.coordinates[1]
     } : null,
-    images: p.images && p.images.length > 0 ? p.images : ["https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=800&q=80"],
+    images: p.images && p.images.length > 0 ? p.images : ["https://nftcalendar.io/storage/uploads/2022/02/21/image-not-found_0221202211372462137974b6c1a.png"],
     description: p.description,
     seller: p.seller ? {
       id: p.seller._id ? p.seller._id.toString() : p.seller,

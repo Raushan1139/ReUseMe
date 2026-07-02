@@ -8,6 +8,15 @@ const NOMINATIM_HEADERS = {
   'User-Agent': 'ReUseMe-Marketplace-CollegeProject-rathoreraushan1139'
 };
 
+const cleanCityName = (name) => {
+  if (!name) return '';
+  let clean = name.split(/-[Cc]um-/)[0];
+  if (clean.includes('-') && clean.length > 15) {
+    clean = clean.split('-')[0];
+  }
+  return clean.trim();
+};
+
 /**
  * Reverse geocodes coordinates to a human-readable address.
  * @param {number} lat - Latitude
@@ -25,7 +34,8 @@ export async function reverseGeocode(lat, lng) {
     const address = data.address || {};
     
     // Extrapolate best representation for city
-    const city = address.city || address.town || address.village || address.suburb || address.county || 'Patna';
+    let city = address.city || address.town || address.village || address.suburb || address.county || 'Patna';
+    city = cleanCityName(city);
     const state = address.state || 'Bihar';
     const pincode = address.postcode || '';
     const country = address.country || 'India';
