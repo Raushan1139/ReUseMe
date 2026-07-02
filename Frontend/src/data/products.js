@@ -1,5 +1,4 @@
 export const popularLocations = [
-  "Use Current Location",
   "Araria, Bihar",
   "Arwal, Bihar",
   "Aurangabad, Bihar",
