@@ -5,13 +5,15 @@ const {
   getOrCreateConversation,
   getConversations,
   getMessages,
-  sendMessage
+  sendMessage,
+  getUnreadCount
 } = require('../controllers/chatController');
 
 router.use(protect); // protect all chat routes with JWT
 
 router.post('/conversations', getOrCreateConversation);
 router.get('/conversations', getConversations);
+router.get('/unread-count', getUnreadCount);
 router.get('/conversations/:conversationId/messages', getMessages);
 router.post('/conversations/:conversationId/messages', sendMessage);
 

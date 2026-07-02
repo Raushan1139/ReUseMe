@@ -77,6 +77,11 @@ export function Chat(params = {}) {
           conv.lastMessage.seen = true;
         }
 
+        // Fetch new unread count to update navbar badges immediately (with delay for DB write)
+        setTimeout(() => {
+          state.fetchUnreadCount();
+        }, 200);
+
         drawPage();
         scrollToBottom();
       }
@@ -161,6 +166,9 @@ export function Chat(params = {}) {
       if (activeConversationId && msg.conversation === activeConversationId) {
         messages.push(msg);
         socketClient.emitMessageSeen(activeConversationId, otherParticipant._id);
+        setTimeout(() => {
+          state.fetchUnreadCount();
+        }, 200);
         drawPage();
         scrollToBottom();
       } else {
@@ -246,10 +254,20 @@ export function Chat(params = {}) {
         let isUnread = false;
         let isOwnLast = false;
         
+        let sideIcon = 'check';
+        let sideColor = 'text-slate-400 dark:text-slate-500';
+
         if (lastMsg) {
           isOwnLast = lastMsg.sender.toString() === state.currentUser._id.toString();
           msgPreview = lastMsg.image ? '📷 Sent an image' : lastMsg.text;
           isUnread = !isOwnLast && !lastMsg.seen;
+          
+          if (lastMsg.seen) {
+            sideIcon = 'check-check';
+            sideColor = 'text-blue-500 dark:text-blue-400';
+          } else if (contactOnline) {
+            sideIcon = 'check-check';
+          }
         }
 
         return `
@@ -273,7 +291,7 @@ export function Chat(params = {}) {
                 ${isUnread ? `
                   <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 flex-shrink-0"></span>
                 ` : lastMsg && isOwnLast ? `
-                  <i data-lucide="${lastMsg.seen ? 'check-check' : 'check'}" class="w-3.5 h-3.5 ${lastMsg.seen ? 'text-emerald-500' : 'text-slate-400'} flex-shrink-0"></i>
+                  <i data-lucide="${sideIcon}" class="w-3.5 h-3.5 ${sideColor} flex-shrink-0"></i>
                 ` : ''}
               </div>
               
@@ -303,6 +321,15 @@ export function Chat(params = {}) {
         const isOwn = m.sender.toString() === state.currentUser._id.toString();
         const msgDate = new Date(m.createdAt).toDateString();
         
+        let checkIcon = 'check';
+        let checkColor = 'text-slate-400 dark:text-slate-500';
+        if (m.seen) {
+          checkIcon = 'check-check';
+          checkColor = 'text-blue-500 dark:text-blue-400';
+        } else if (otherParticipant && socketClient.isOnline(otherParticipant._id)) {
+          checkIcon = 'check-check';
+        }
+
         let dateDivider = '';
         if (msgDate !== lastDate) {
           lastDate = msgDate;
@@ -332,7 +359,7 @@ export function Chat(params = {}) {
               <div class="flex items-center gap-1 mt-1 text-[9px] font-bold text-slate-400">
                 <span>${msgTime}</span>
                 ${isOwn ? `
-                  <i data-lucide="${m.seen ? 'check-check' : 'check'}" class="w-3 h-3 ${m.seen ? 'text-emerald-500' : 'text-slate-400'}"></i>
+                  <i data-lucide="${checkIcon}" class="w-3 h-3 ${checkColor}"></i>
                 ` : ''}
               </div>
             </div>
@@ -345,6 +372,10 @@ export function Chat(params = {}) {
           <!-- Chat Window Header -->
           <div class="p-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 bg-slate-50/50 dark:bg-slate-900/50">
             <div class="flex items-center gap-3">
+              <!-- Back button for mobile screens -->
+              <button id="chat-mobile-back-btn" class="md:hidden p-1.5 rounded-xl text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition mr-1">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+              </button>
               <img src="${otherParticipant.avatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=${otherParticipant.username}`}" class="w-10 h-10 rounded-full object-cover" />
               <div>
                 <h4 class="text-sm font-bold text-slate-800 dark:text-white leading-none">${otherParticipant.username}</h4>
@@ -357,14 +388,14 @@ export function Chat(params = {}) {
 
             <!-- Product Info banner -->
             ${activeConversation.product ? `
-              <div class="flex items-center gap-2.5 pl-3.5 border-l border-slate-200 dark:border-slate-700 max-w-sm">
-                <img src="${activeConversation.product.images[0] || 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=800&q=80'}" class="w-9 h-9 rounded-lg object-cover" />
-                <div class="min-w-0">
+              <div class="flex items-center gap-2 pl-2 sm:pl-3.5 border-l border-slate-200 dark:border-slate-700 max-w-[60%] sm:max-w-sm">
+                <img src="${activeConversation.product.images[0] || 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=800&q=80'}" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg object-cover flex-shrink-0" />
+                <div class="min-w-0 hidden sm:block ml-2">
                   <h5 class="text-[11px] font-bold text-slate-800 dark:text-white truncate leading-none mb-0.5">${activeConversation.product.title}</h5>
                   <span class="text-[10px] font-black text-emerald-600 dark:text-emerald-400">₹${activeConversation.product.price}</span>
                 </div>
-                <a href="#/product/${activeConversation.product._id || activeConversation.product.id}" class="px-2.5 py-1 text-[10px] font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-md transition flex-shrink-0">
-                  View Item
+                <a href="#/product/${activeConversation.product._id || activeConversation.product.id}" class="px-2 py-1 text-[9px] sm:text-[10px] font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-md transition flex-shrink-0 ml-1.5">
+                  View
                 </a>
               </div>
             ` : ''}
@@ -427,7 +458,7 @@ export function Chat(params = {}) {
     container.innerHTML = `
       <div class="grid grid-cols-1 md:grid-cols-12 gap-6 h-full flex-grow">
         <!-- Sidebar Column (Conversations List) -->
-        <div class="md:col-span-4 flex flex-col bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800/80 rounded-2xl overflow-hidden shadow-sm h-full max-h-full">
+        <div class="md:col-span-4 flex flex-col bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800/80 rounded-2xl overflow-hidden shadow-sm h-full max-h-full ${activeConversation ? 'hidden md:flex' : 'flex'}">
           <div class="p-4 border-b border-slate-100 dark:border-slate-800">
             <h3 class="text-base font-bold text-slate-800 dark:text-white">Active Chats</h3>
           </div>
@@ -437,7 +468,7 @@ export function Chat(params = {}) {
         </div>
 
         <!-- Chat Window Column -->
-        <div class="md:col-span-8 flex flex-col h-full max-h-full">
+        <div class="md:col-span-8 flex flex-col h-full max-h-full ${activeConversation ? 'flex' : 'hidden md:flex'}">
           ${windowHtml}
         </div>
       </div>
@@ -452,6 +483,21 @@ export function Chat(params = {}) {
         if (conv) selectConversation(conv);
       });
     });
+
+    // Wire up mobile back button
+    if (activeConversation) {
+      const mobileBackBtn = container.querySelector('#chat-mobile-back-btn');
+      if (mobileBackBtn) {
+        mobileBackBtn.addEventListener('click', () => {
+          activeConversation = null;
+          activeConversationId = null;
+          otherParticipant = null;
+          // Clear query params / hash back to plain #/chat
+          window.history.pushState(null, '', '#/chat');
+          drawPage();
+        });
+      }
+    }
 
     // Wire up Chat input event listeners
     if (activeConversation) {

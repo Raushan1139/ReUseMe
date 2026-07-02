@@ -144,9 +144,34 @@ const sendMessage = async (req, res, next) => {
   }
 };
 
+// @desc    Get total unread messages count
+// @route   GET /api/chat/unread-count
+// @access  Private
+const getUnreadCount = async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+
+    // Find all conversations for this user
+    const conversations = await Conversation.find({ participants: userId });
+    const conversationIds = conversations.map(c => c._id);
+
+    // Count messages in these conversations where sender is NOT the user and seen is false
+    const unreadCount = await Message.countDocuments({
+      conversation: { $in: conversationIds },
+      sender: { $ne: userId },
+      seen: false
+    });
+
+    res.status(200).json({ count: unreadCount });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getOrCreateConversation,
   getConversations,
   getMessages,
-  sendMessage
+  sendMessage,
+  getUnreadCount
 };

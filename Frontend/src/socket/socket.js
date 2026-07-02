@@ -49,6 +49,10 @@ export const socketClient = {
       notifyListeners();
     });
 
+    socket.on('receive-message', () => {
+      notifyListeners();
+    });
+
     socket.on('connect_error', (err) => {
       console.warn('Socket connection error:', err.message);
     });

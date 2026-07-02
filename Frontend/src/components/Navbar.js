@@ -66,6 +66,16 @@ export function Navbar(activePath = '') {
 
         <!-- Right Side Nav Actions -->
         <div class="flex items-center gap-1 sm:gap-3">
+          <!-- Messages Box (Directly on Navbar) -->
+          ${user ? `
+            <a href="#/chat" id="nav-messages-btn" class="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-white relative transition duration-150" aria-label="Messages">
+              <i data-lucide="message-square" class="w-5 h-5"></i>
+              <span id="nav-messages-badge" class="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-emerald-500 text-[9px] font-bold text-white ring-2 ring-white dark:ring-slate-900 flex items-center justify-center ${state.unreadMessagesCount > 0 ? '' : 'hidden'}">
+                ${state.unreadMessagesCount}
+              </span>
+            </a>
+          ` : ''}
+
           <!-- Dark Mode Toggle -->
           <button id="theme-toggle" class="p-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-white transition duration-150" aria-label="Toggle theme">
             <i data-lucide="${isDark ? 'sun' : 'moon'}" class="w-5 h-5"></i>
@@ -104,9 +114,6 @@ export function Navbar(activePath = '') {
                 </div>
                 <a href="#/profile" class="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800 transition">
                   <i data-lucide="user" class="w-4 h-4 text-slate-400"></i> My Profile
-                </a>
-                <a href="#/chat" class="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800 transition">
-                  <i data-lucide="message-square" class="w-4 h-4 text-slate-400"></i> Messages
                 </a>
                 <a href="#/wishlist" class="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800 transition">
                   <i data-lucide="heart" class="w-4 h-4 text-slate-400"></i> My Wishlist
@@ -197,8 +204,13 @@ export function Navbar(activePath = '') {
               <i data-lucide="plus-circle" class="w-5 h-5"></i> Sell Item
             </a>
             ${user ? `
-              <a href="#/chat" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 font-medium transition ${activePath === '/chat' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400' : ''}">
-                <i data-lucide="message-square" class="w-5 h-5"></i> Messages
+              <a href="#/chat" class="flex items-center justify-between px-4 py-3 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 font-medium transition ${activePath === '/chat' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400' : ''}">
+                <span class="flex items-center gap-3">
+                  <i data-lucide="message-square" class="w-5 h-5"></i> Messages
+                </span>
+                <span id="mobile-nav-messages-badge" class="px-2 py-0.5 rounded-full bg-emerald-500 text-[10px] font-bold text-white ${state.unreadMessagesCount > 0 ? '' : 'hidden'}">
+                  ${state.unreadMessagesCount}
+                </span>
               </a>
               <a href="#/profile" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 font-medium transition ${activePath === '/profile' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400' : ''}">
                 <i data-lucide="user" class="w-5 h-5"></i> My Profile

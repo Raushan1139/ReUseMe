@@ -95,9 +95,11 @@ export function initRouter() {
     }
     app.appendChild(main);
     
-    // Render Footer
-    currentFooter = Footer();
-    app.appendChild(currentFooter);
+    // Render Footer (except for chat pages to maintain viewport layouts)
+    if (!cleanPath.startsWith('/chat')) {
+      currentFooter = Footer();
+      app.appendChild(currentFooter);
+    }
     
     // Initialize icons
     if (window.lucide) {

@@ -171,6 +171,11 @@ export const state = {
     // Request location dynamically and fetch products
     await this.detectLocationAndFetch();
 
+    // Subscribe to socket updates (like receiving messages)
+    socketClient.subscribe(() => {
+      this.fetchUnreadCount();
+    });
+
     // Check token and validate with backend
     const token = localStorage.getItem('token');
     if (token) {
@@ -182,6 +187,7 @@ export const state = {
         if (res.ok) {
           currentUser = await res.json();
           localStorage.setItem('user', JSON.stringify(currentUser));
+          this.fetchUnreadCount();
           
           // Fetch backend wishlist
           const wishRes = await fetch(`${API_URL}/auth/wishlist`, {
@@ -210,6 +216,8 @@ export const state = {
     localStorage.removeItem('user');
     localStorage.removeItem('wishlist');
     socketClient.disconnectSocket();
+    this.unreadMessagesCount = 0;
+    this.updateMessagesBadges(0);
   },
 
   // Theme Manager
@@ -240,6 +248,46 @@ export const state = {
 
   // Auth User
   get currentUser() { return currentUser; },
+
+  unreadMessagesCount: 0,
+  
+  async fetchUnreadCount() {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_URL}/chat/unread-count`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        this.unreadMessagesCount = data.count;
+        this.updateMessagesBadges(data.count);
+      }
+    } catch (e) {
+      console.warn("Failed to fetch unread count:", e);
+    }
+  },
+
+  updateMessagesBadges(count) {
+    const desktopBadge = document.getElementById('nav-messages-badge');
+    if (desktopBadge) {
+      if (count > 0) {
+        desktopBadge.innerText = count;
+        desktopBadge.classList.remove('hidden');
+      } else {
+        desktopBadge.classList.add('hidden');
+      }
+    }
+    const mobileBadge = document.getElementById('mobile-nav-messages-badge');
+    if (mobileBadge) {
+      if (count > 0) {
+        mobileBadge.innerText = count;
+        mobileBadge.classList.remove('hidden');
+      } else {
+        mobileBadge.classList.add('hidden');
+      }
+    }
+  },
   
   async login(email, password) {
     try {
@@ -255,6 +303,7 @@ export const state = {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(currentUser));
         socketClient.connectSocket(data.token, API_URL);
+        this.fetchUnreadCount();
         
         // Fetch wishlist items
         const wishRes = await fetch(`${API_URL}/auth/wishlist`, {
@@ -297,6 +346,7 @@ export const state = {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(currentUser));
         socketClient.connectSocket(data.token, API_URL);
+        this.fetchUnreadCount();
         wishlist = [];
         localStorage.setItem('wishlist', JSON.stringify(wishlist));
         
