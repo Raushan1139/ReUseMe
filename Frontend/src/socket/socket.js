@@ -1,5 +1,3 @@
-import { state } from '../state.js';
-
 let socket = null;
 let onlineUsers = [];
 const listeners = new Set();
@@ -26,10 +24,10 @@ export const socketClient = {
     return () => listeners.delete(listener);
   },
 
-  connectSocket(token) {
+  connectSocket(token, apiUrl) {
     if (socket?.connected) return;
 
-    const backendUrl = getBaseUrl(state.API_URL);
+    const backendUrl = getBaseUrl(apiUrl);
     
     // Connect using global io loaded from CDN in index.html
     if (typeof io === 'undefined') {
