@@ -33,9 +33,7 @@ export function ForgotPassword() {
 
         <button 
           type="submit" 
-          class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-bold text-sm rounded-xl shadow-lg shadow-emerald-500/10 hover:shadow-emerald-500/20 transition duration-150 mt-2"
-        >
-          Send Reset Link
+          class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-bold text-sm rounded-xl shadow-lg shadow-emerald-500/10 hover:shadow-emerald-500/20 transition duration-150 mt-2 cursor-pointer">Send Reset Link
         </button>
       </form>
 
