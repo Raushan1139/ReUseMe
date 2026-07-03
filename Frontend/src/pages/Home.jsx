@@ -120,7 +120,7 @@ export function Home() {
   container.className = 'w-full relative';
   
   // Local state
-  let isLoading = true;
+  let isLoading = !state.isInitialFetchComplete;
   let mapViewActive = false;
 
   // Local sorting state: 'newest' | 'price-asc' | 'price-desc' | 'nearby'
@@ -393,7 +393,13 @@ export function Home() {
                   <i data-lucide="map" class="w-5 h-5 text-emerald-500"></i>
                   Map View
                 </h2>
-                <div id="home-leaflet-map" class="w-full h-[520px] bg-slate-100 dark:bg-slate-800 rounded-3xl overflow-hidden shadow-inner border border-slate-150 dark:border-slate-850 relative z-10"></div>
+                <div class="relative">
+                  <div id="home-leaflet-map" class="w-full h-[520px] bg-slate-100 dark:bg-slate-800 rounded-3xl overflow-hidden shadow-inner border border-slate-150 dark:border-slate-850 relative z-10"></div>
+                  <!-- Minimise button of map at right corner -->
+                  <button id="map-minimise-btn" class="absolute top-4 right-4 z-[999] p-2.5 rounded-xl bg-white/90 hover:bg-white dark:bg-slate-900/90 dark:hover:bg-slate-900 text-slate-700 dark:text-slate-200 shadow-lg hover:scale-105 active:scale-95 transition flex items-center justify-center cursor-pointer border border-slate-200/50 dark:border-slate-800" title="Minimise Map">
+                    <i data-lucide="minimize-2" class="w-4 h-4 text-emerald-600 dark:text-emerald-400"></i>
+                  </button>
+                </div>
               </div>
             ` : `
               <!-- Actual Listings Grid -->
@@ -654,6 +660,15 @@ export function Home() {
       });
     }
 
+    // Map Minimise button
+    const mapMinimiseBtn = container.querySelector('#map-minimise-btn');
+    if (mapMinimiseBtn) {
+      mapMinimiseBtn.addEventListener('click', () => {
+        mapViewActive = false;
+        drawPage();
+      });
+    }
+
     // Populate Product Cards in the grid
     if (!isLoading) {
       if (mapViewActive) {
@@ -746,11 +761,10 @@ export function Home() {
     }
   };
 
-  // Simulated skeletal loading indicator
-  setTimeout(() => {
+  // If the initial products fetch completes, disable loading skeletons
+  if (state.isInitialFetchComplete) {
     isLoading = false;
-    drawPage();
-  }, 400);
+  }
 
   // Initial draw
   drawPage();

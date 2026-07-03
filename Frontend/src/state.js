@@ -43,6 +43,7 @@ try {
   console.error("Failed to parse detectedLocation", e);
 }
 let products = [];
+let isInitialFetchComplete = false;
 
 // Active filters
 let filters = {
@@ -83,6 +84,8 @@ const getAuthHeaders = () => {
 export const state = {
   _lastViewedProductId: null,
 
+  get isInitialFetchComplete() { return isInitialFetchComplete; },
+
   get userCoordinates() { return userCoordinates; },
   set userCoordinates(val) { userCoordinates = val; },
 
@@ -91,10 +94,23 @@ export const state = {
   },
 
   async detectLocationAndFetch() {
+    // 1. Instantly trigger a background product fetch using whatever location we already have (cached or default)
+    // to start resolving Render container cold starts immediately.
+    this.fetchProducts().catch(err => console.warn("Initial wake-up fetch failed:", err));
+
+    // 2. Request browser Geolocation in the background
     try {
+      const oldLat = userCoordinates?.latitude;
+      const oldLng = userCoordinates?.longitude;
+
       const coords = await getUserLocation();
       userCoordinates = coords;
       
+      // If coordinates haven't changed from cached values, don't execute geocoding/fetching again
+      if (oldLat === coords.latitude && oldLng === coords.longitude) {
+        return;
+      }
+
       const address = await reverseGeocode(coords.latitude, coords.longitude);
       detectedLocation = {
         city: address.city,
@@ -122,10 +138,17 @@ export const state = {
           })
         }).catch(err => console.warn("Failed to sync location to backend:", err));
       }
+      
+      // Re-fetch products with user's new precise coordinates
+      await this.fetchProducts();
     } catch (e) {
       console.warn("Browser GPS Geolocation failed, trying IP-based fallback...", e);
       try {
         const ipCoords = await getIpLocation();
+        
+        const oldLat = userCoordinates?.latitude;
+        const oldLng = userCoordinates?.longitude;
+        
         userCoordinates = { latitude: ipCoords.latitude, longitude: ipCoords.longitude };
         detectedLocation = {
           city: ipCoords.city,
@@ -154,16 +177,21 @@ export const state = {
           }).catch(err => console.warn("Failed to sync IP location to backend:", err));
         }
         this.showToast(`Location detected: ${ipCoords.city}`, 'info');
+
+        if (oldLat !== ipCoords.latitude || oldLng !== ipCoords.longitude) {
+          await this.fetchProducts();
+        }
       } catch (ipErr) {
         console.warn("IP Geolocation fallback failed, using default Patna...", ipErr);
         if (!detectedLocation) {
           detectedLocation = { city: 'Patna', state: 'Bihar', pincode: '800001', latitude: 25.5941, longitude: 85.1376 };
         }
         userCoordinates = { latitude: detectedLocation.latitude, longitude: detectedLocation.longitude };
+        
+        // Final fallback fetch
+        await this.fetchProducts();
       }
     }
-    await this.fetchProducts();
-    notify();
   },
 
   async setSelectedLocation(city, lat, lng, stateName = 'Bihar', pincode = '') {
@@ -795,19 +823,31 @@ export const state = {
         queryParams.append('longitude', lng);
       }
 
+      // If fetching products takes more than 1.5 seconds, notify user (Render free tier waking up)
+      let isSlow = false;
+      const slowTimer = setTimeout(() => {
+        isSlow = true;
+        this.showToast("Waking up server... First load may take 30-50 seconds.", "info");
+      }, 1500);
+
       const res = await fetch(`${API_URL}/products?${queryParams.toString()}`);
+      clearTimeout(slowTimer);
+
       if (res.ok) {
         products = await res.json();
         this.checkAndNotifyNearbyProducts(products);
+        isInitialFetchComplete = true;
         notify();
       } else {
         console.warn("Backend products fetch failed.");
         products = [];
+        isInitialFetchComplete = true;
         notify();
       }
     } catch (e) {
       console.warn("Backend connection failed.", e);
       products = [];
+      isInitialFetchComplete = true;
       notify();
     }
   },
