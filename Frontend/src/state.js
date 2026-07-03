@@ -405,19 +405,7 @@ export const state = {
       const data = await res.json();
 
       if (res.ok) {
-        currentUser = data.user;
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(currentUser));
-        socketClient.connectSocket(data.token, API_URL);
-        this.fetchUnreadCount();
-        wishlist = [];
-        localStorage.setItem('wishlist', JSON.stringify(wishlist));
-        
-        // Request location and reload products sorted by distance
-        await this.detectLocationAndFetch();
-
-        notify();
-        this.showToast(`Account created! Welcome, ${currentUser.username}!`, 'success');
+        this.showToast(`Registration successful! A welcome email was sent to ${email}. Please log in.`, 'success');
         return true;
       } else {
         this.showToast(data.message || "Registration failed", 'error');

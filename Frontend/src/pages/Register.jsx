@@ -135,7 +135,7 @@ export function Register() {
 
     const success = await state.register(username, email, password);
     if (success) {
-      window.location.hash = '#/';
+      window.location.hash = '#/login';
     }
   });
 
