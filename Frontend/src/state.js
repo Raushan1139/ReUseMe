@@ -821,7 +821,7 @@ export const state = {
       let isSlow = false;
       const slowTimer = setTimeout(() => {
         isSlow = true;
-        this.showToast("Waking up server... First load may take 30-50 seconds.", "info");
+        this.showToast("Loading.....", "info");
       }, 1500);
 
       const res = await fetch(`${API_URL}/products?${queryParams.toString()}`);
