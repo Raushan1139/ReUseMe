@@ -812,11 +812,13 @@ export const state = {
       }
 
       // If fetching products takes more than 1.5 seconds, notify user (Render free tier waking up)
+      /*
       let isSlow = false;
       const slowTimer = setTimeout(() => {
         isSlow = true;
         this.showToast("Waking up server... First load may take 30-50 seconds.", "info");
       }, 1500);
+      */
 
       const res = await fetch(`${API_URL}/products?${queryParams.toString()}`);
       clearTimeout(slowTimer);
