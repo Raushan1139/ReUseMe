@@ -339,7 +339,7 @@ export function Navbar(activePath = '') {
   if (navLocationSelect) {
     navLocationSelect.addEventListener('change', async (e) => {
       if (e.target.value === "Use Current Location") {
-        await state.detectLocationAndFetch();
+        await state.detectLocationAndFetch(true);
         state.setFilters({ location: "" });
       } else {
         state.setFilters({ location: e.target.value });

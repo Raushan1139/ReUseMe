@@ -93,7 +93,13 @@ export const state = {
     return detectedLocation || { city: 'Patna', state: 'Bihar', pincode: '800001', latitude: 25.5941, longitude: 85.1376 };
   },
 
-  async detectLocationAndFetch() {
+  async detectLocationAndFetch(force = false) {
+    // If we already have a cached location and are not forcing a refresh, just fetch products and return
+    if (detectedLocation && !force) {
+      await this.fetchProducts();
+      return;
+    }
+
     // 1. Instantly trigger a background product fetch using whatever location we already have (cached or default)
     // to start resolving Render container cold starts immediately.
     this.fetchProducts().catch(err => console.warn("Initial wake-up fetch failed:", err));
@@ -812,13 +818,11 @@ export const state = {
       }
 
       // If fetching products takes more than 1.5 seconds, notify user (Render free tier waking up)
-      /*
       let isSlow = false;
       const slowTimer = setTimeout(() => {
         isSlow = true;
         this.showToast("Waking up server... First load may take 30-50 seconds.", "info");
       }, 1500);
-      */
 
       const res = await fetch(`${API_URL}/products?${queryParams.toString()}`);
       clearTimeout(slowTimer);
