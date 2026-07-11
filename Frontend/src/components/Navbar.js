@@ -144,7 +144,7 @@ export function Navbar(activePath = '') {
 
     <!-- Mobile Drawer Menu -->
     <div id="mobile-menu-drawer" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden transition-opacity duration-300 opacity-0 pointer-events-none">
-      <div class="absolute top-0 right-0 w-80 max-w-full bg-white dark:bg-slate-900 h-full p-6 shadow-2xl flex flex-col justify-between transform translate-x-full transition-transform duration-300" style="background-color: ${isDark ? '#0f172a' : '#ffffff'};">
+      <div class="absolute drawer-content top-0 right-0 w-80 max-w-full bg-white dark:bg-slate-900 h-full p-6 shadow-2xl flex flex-col justify-between transform translate-x-full transition-transform duration-300">
         <div>
           <!-- Header -->
           <div class="flex items-center justify-between pb-6 border-b border-slate-100 dark:border-slate-800">

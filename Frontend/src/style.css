@@ -91,3 +91,12 @@
 .dark ::-webkit-scrollbar-thumb:hover {
   background: #475569;
 }
+
+/* Defensive Solid backgrounds for Mobile menu drawer */
+#mobile-menu-drawer .drawer-content {
+  background-color: #ffffff !important;
+}
+
+.dark #mobile-menu-drawer .drawer-content {
+  background-color: #0f172a !important;
+}
