@@ -88,25 +88,32 @@ export function Profile() {
 
         <!-- Main Content Area: Tabs -->
         <div class="lg:col-span-2 flex flex-col gap-6">
-          <div class="border-b border-slate-200 dark:border-slate-800 flex gap-6">
-            <button 
-              id="tab-active-btn" 
-              class="pb-4 font-bold text-sm border-b-2 transition ${activeTab === 'active' ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400' : 'border-transparent text-slate-500 hover:text-slate-700'}"
-            >
-              Active Listings (${isLoadingProds ? '...' : activeProds.length})
-            </button>
-            <button 
-              id="tab-sold-btn" 
-              class="pb-4 font-bold text-sm border-b-2 transition ${activeTab === 'sold' ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400' : 'border-transparent text-slate-500 hover:text-slate-700'}"
-            >
-              Sold Listings (${isLoadingProds ? '...' : soldProds.length})
-            </button>
-            <button 
-              id="tab-settings-btn" 
-              class="pb-4 font-bold text-sm border-b-2 transition ${activeTab === 'settings' ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400' : 'border-transparent text-slate-500 hover:text-slate-700'}"
-            >
-              Account Settings
-            </button>
+          <div class="border-b border-slate-200 dark:border-slate-800 flex justify-between items-end pb-0.5 gap-4">
+            <div class="flex gap-4 sm:gap-6 overflow-x-auto scrollbar-none pb-0.5">
+              <button 
+                id="tab-active-btn" 
+                class="pb-4 font-bold text-sm border-b-2 transition whitespace-nowrap ${activeTab === 'active' ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400' : 'border-transparent text-slate-500 hover:text-slate-700'}"
+              >
+                Active Listings (${isLoadingProds ? '...' : activeProds.length})
+              </button>
+              <button 
+                id="tab-sold-btn" 
+                class="pb-4 font-bold text-sm border-b-2 transition whitespace-nowrap ${activeTab === 'sold' ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400' : 'border-transparent text-slate-500 hover:text-slate-700'}"
+              >
+                Sold Listings (${isLoadingProds ? '...' : soldProds.length})
+              </button>
+              <button 
+                id="tab-settings-btn" 
+                class="pb-4 font-bold text-sm border-b-2 transition whitespace-nowrap ${activeTab === 'settings' ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400' : 'border-transparent text-slate-500 hover:text-slate-700'}"
+              >
+                Account Settings
+              </button>
+            </div>
+            
+            <a href="#/sell" class="mb-4 flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 active:scale-95 transition flex-shrink-0 shadow-md shadow-emerald-500/10">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+              Sell Item
+            </a>
           </div>
 
           <div id="tab-content" class="w-full">
